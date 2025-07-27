@@ -1,10 +1,4 @@
+/* Sets the default font for the entire page */
 body {
     font-family: 'Inter', sans-serif;
-}
-.list li:hover .delete-btn {
-    opacity: 1;
-}
-.delete-btn {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
 }
