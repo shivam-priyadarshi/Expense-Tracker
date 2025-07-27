@@ -5,75 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expense Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-100">
+<body class="text-gray-800">
 
-    <div id="loading-overlay" class="fixed inset-0 bg-gray-100 flex justify-center items-center z-50">
-        <p class="text-lg text-gray-600">Loading Your Data...</p>
+    <div class="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="mb-10 text-white bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-2xl shadow-lg">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center tracking-tight">Expense Tracker</h1>
+            <p class="text-center text-indigo-200 mt-2">Your personal finance dashboard.</p>
+        </header>
+
+        <section class="mb-8">
+            <div class="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200">
+                <h2 class="text-sm font-medium text-gray-500 mb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Current Balance
+                </h2>
+                <p id="balance" class="text-4xl font-bold text-gray-800">₹0.00</p>
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h3 class="text-sm font-medium text-green-800 flex items-center justify-center gap-1.5">
+                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Income
+                        </h3>
+                        <p id="money-plus" class="text-2xl font-semibold text-green-600">+₹0.00</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h3 class="text-sm font-medium text-red-800 flex items-center justify-center gap-1.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18 12H6" />
+                            </svg>
+                            Expense
+                        </h3>
+                        <p id="money-minus" class="text-2xl font-semibold text-red-600">-₹0.00</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <div class="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Add New Transaction</h2>
+                <form id="form">
+                    <div class="mb-4">
+                        <label for="text" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <input type="text" id="text" placeholder="e.g., Coffee, Salary" class="w-full p-3 bg-white/50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
+                        <input type="number" id="amount" placeholder="Enter amount..." class="w-full p-3 bg-white/50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" required>
+                    </div>
+                    <fieldset class="mb-5">
+                        <legend class="block text-sm font-medium text-gray-700 mb-2">Type</legend>
+                        <div class="flex items-center gap-4">
+                            <label class="flex items-center p-3 border rounded-lg has-[:checked]:bg-green-100 has-[:checked]:border-green-400 flex-1 cursor-pointer transition-all bg-white/50">
+                                <input type="radio" name="type" value="income" class="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                <span class="ml-3 text-sm font-medium text-gray-800">Income</span>
+                            </label>
+                            <label class="flex items-center p-3 border rounded-lg has-[:checked]:bg-red-100 has-[:checked]:border-red-400 flex-1 cursor-pointer transition-all bg-white/50">
+                                <input type="radio" name="type" value="expense" checked class="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500">
+                                <span class="ml-3 text-sm font-medium text-gray-800">Expense</span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <button class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">Add Transaction</button>
+                </form>
+            </div>
+        </section>
+
+        <section>
+             <div class="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">Transaction History</h2>
+                <ul id="list" class="space-y-3">
+                </ul>
+                <p id="no-transactions" class="text-center text-gray-500 py-4 hidden">No transactions yet.</p>
+             </div>
+        </section>
     </div>
 
-    <header class="bg-gray-800 text-white p-4 shadow-md">
-        <h1 class="text-2xl font-bold text-center">Expense Tracker</h1>
-    </header>
-
-    <main class="container mx-auto p-4 md:p-6 max-w-2xl">
-        <div class="p-4 bg-white rounded-lg shadow-md mb-6">
-            <h4 class="text-lg font-semibold text-gray-600">Your Balance</h4>
-            <h1 id="balance" class="text-3xl font-bold text-green-500">₹0.00</h1>
-        </div>
-
-        <div class="flex justify-between bg-white p-4 rounded-lg shadow-md mb-6 text-center">
-            <div class="w-1/2 border-r border-gray-200">
-                <h4 class="text-lg font-semibold text-green-600">Income</h4>
-                <p id="money-plus" class="text-2xl font-bold text-green-500">+₹0.00</p>
-            </div>
-            <div class="w-1/2">
-                <h4 class="text-lg font-semibold text-red-600">Expense</h4>
-                <p id="money-minus" class="text-2xl font-bold text-red-500">-₹0.00</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-md mt-6">
-            <h3 class="text-xl font-bold border-b pb-2 mb-4 text-gray-700">Add new transaction</h3>
-            <form id="form">
-                <div class="mb-4">
-                    <label for="text" class="block text-sm font-medium text-gray-600 mb-1">Description</label>
-                    <input type="text" id="text" placeholder="Enter description..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                </div>
-                <div class="mb-4">
-                    <label for="amount" class="block text-sm font-medium text-gray-600 mb-1">Amount</label>
-                    <input type="number" id="amount" placeholder="Enter amount..." class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                </div>
-                <div class="mb-4">
-                     <label class="block text-sm font-medium text-gray-600 mb-1">Transaction Type</label>
-                     <div class="flex items-center space-x-4">
-                        <label class="flex items-center">
-                            <input type="radio" name="type" value="expense" checked class="form-radio h-4 w-4 text-indigo-600">
-                            <span class="ml-2 text-gray-700">Expense</span>
-                        </label>
-                         <label class="flex items-center">
-                            <input type="radio" name="type" value="income" class="form-radio h-4 w-4 text-indigo-600">
-                            <span class="ml-2 text-gray-700">Income</span>
-                        </label>
-                     </div>
-                </div>
-                <button class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 font-semibold">Add transaction</button>
-            </form>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-md mt-6">
-            <h3 class="text-xl font-bold border-b pb-2 mb-4 text-gray-700">History</h3>
-            <ul id="list" class="list-none m-0 p-0"></ul>
-        </div>
-        
-        <div class="text-center mt-6 text-gray-500 text-sm">
-            <p>Your User ID (for reference):</p>
-            <p id="user-id" class="font-mono bg-gray-200 p-1 rounded inline-block">Authenticating...</p>
-        </div>
-    </main>
-
-    <script type="module" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

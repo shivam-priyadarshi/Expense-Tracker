@@ -1,7 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 const balanceEl = document.getElementById('balance');
 const moneyPlusEl = document.getElementById('money-plus');
 const moneyMinusEl = document.getElementById('money-minus');
@@ -9,155 +5,115 @@ const listEl = document.getElementById('list');
 const form = document.getElementById('form');
 const textInput = document.getElementById('text');
 const amountInput = document.getElementById('amount');
-const userIdEl = document.getElementById('user-id');
-const loadingOverlay = document.getElementById('loading-overlay');
+const noTransactionsEl = document.getElementById('no-transactions');
 
-try {
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const getTransactionsFromStorage = () => {
+    const storedTransactions = localStorage.getItem('transactions');
+    return storedTransactions ? JSON.parse(storedTransactions) : [];
+};
 
-    if (Object.keys(firebaseConfig).length === 0) {
-        throw new Error("Firebase configuration is missing.");
-    }
+let transactions = getTransactionsFromStorage();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const saveTransactionsToStorage = () => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+};
 
-    let userId = null;
-    let transactionsCollectionRef = null;
+const addTransactionToDOM = (transaction) => {
+    const isExpense = transaction.amount < 0;
+    const sign = isExpense ? '-' : '+';
+    const item = document.createElement('li');
+    item.className = `flex items-center justify-between p-4 rounded-xl bg-white/80 backdrop-blur-sm border hover:shadow-md transition-all duration-300`;
+    
+    const formattedDate = new Date(transaction.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    
+    const iconBg = isExpense ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600';
+    const icon = isExpense 
+        ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>`
+        : `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12" /></svg>`;
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            userId = user.uid;
-            userIdEl.textContent = userId;
-            initializeTransactionsListener();
-        } else {
-            try {
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Error signing in:", error);
-                userIdEl.textContent = 'Authentication Failed';
-            }
-        }
-        loadingOverlay.style.display = 'none';
-    });
-
-    function initializeTransactionsListener() {
-        if (!userId) return;
-        transactionsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/transactions`);
-        const q = query(transactionsCollectionRef);
-
-        onSnapshot(q, (snapshot) => {
-            const transactions = [];
-            snapshot.forEach(doc => {
-                transactions.push({ ...doc.data(), id: doc.id });
-            });
-            transactions.sort((a, b) => {
-                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : 0;
-                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : 0;
-                return dateB - dateA;
-            });
-            updateDOM(transactions);
-        }, (error) => {
-            console.error("Error fetching transactions:", error);
-        });
-    }
-
-    function updateDOM(transactions = []) {
-        listEl.innerHTML = '';
-
-        transactions.forEach(addTransactionToDOM);
-
-        const amounts = transactions.map(t => t.amount);
-        const total = amounts.reduce((acc, item) => (acc += item), 0);
-        const income = amounts.filter(item => item > 0).reduce((acc, item) => (acc += item), 0);
-        const expense = (amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) * -1);
-
-        balanceEl.innerText = `₹${total.toFixed(2)}`;
-        balanceEl.className = `text-3xl font-bold ${total >= 0 ? 'text-green-500' : 'text-red-500'}`;
-        moneyPlusEl.innerText = `+₹${income.toFixed(2)}`;
-        moneyMinusEl.innerText = `-₹${expense.toFixed(2)}`;
-    }
-
-    function addTransactionToDOM(transaction) {
-        const sign = transaction.amount < 0 ? '-' : '+';
-        const item = document.createElement('li');
-        
-        item.className = `flex justify-between items-center p-3 mb-2 rounded-lg shadow-sm ${transaction.amount < 0 ? 'border-r-4 border-red-500' : 'border-r-4 border-green-500'} bg-gray-50`;
-
-        const dateString = transaction.createdAt?.toDate ? 
-            new Date(transaction.createdAt.toDate()).toLocaleString('en-IN', {
-                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
-            }) : 'No date';
-
-        item.innerHTML = `
+    item.innerHTML = `
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center ${iconBg}">
+               ${icon}
+            </div>
             <div>
-                <span class="text-gray-800 capitalize font-medium">${transaction.text}</span>
-                <p class="text-sm text-gray-500 mt-1">${dateString}</p>
+                <div class="font-medium capitalize">${transaction.text}</div>
+                <div class="text-sm text-gray-500">${formattedDate}</div>
             </div>
-            <div class="flex items-center">
-                <span class="font-semibold ${transaction.amount < 0 ? 'text-red-600' : 'text-green-600'}">
-                    ${sign}₹${Math.abs(transaction.amount).toFixed(2)}
-                </span>
-                <button class="delete-btn ml-4 bg-red-500 text-white py-1 px-2 rounded-full text-xs hover:bg-red-600 transition-colors duration-200" data-id="${transaction.id}">
-                    x
-                </button>
-            </div>
-        `;
-        listEl.appendChild(item);
+        </div>
+        <div class="flex items-center">
+            <span class="font-semibold text-sm sm:text-base ${isExpense ? 'text-red-600' : 'text-green-600'}">
+                ${sign}₹${Math.abs(transaction.amount).toFixed(2)}
+            </span>
+            <button data-id="${transaction.id}" class="delete-btn ml-4 text-gray-400 hover:text-red-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+    `;
+    listEl.appendChild(item);
+};
+
+const updateUI = () => {
+    listEl.innerHTML = '';
+
+    if (transactions.length === 0) {
+        noTransactionsEl.classList.remove('hidden');
+    } else {
+        noTransactionsEl.classList.add('hidden');
+        transactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        transactions.forEach(addTransactionToDOM);
     }
 
-    async function handleAddTransaction(e) {
-        e.preventDefault();
-        if (!userId || textInput.value.trim() === '' || amountInput.value.trim() === '') {
-            alert('Please add a text and amount');
-            return;
+    const amounts = transactions.map(t => t.amount);
+    const total = amounts.reduce((acc, item) => acc + item, 0);
+    const income = amounts.filter(item => item > 0).reduce((acc, item) => acc + item, 0);
+    const expense = amounts.filter(item => item < 0).reduce((acc, item) => acc + item, 0);
+
+    balanceEl.textContent = `₹${total.toFixed(2)}`;
+    moneyPlusEl.textContent = `+₹${income.toFixed(2)}`;
+    moneyMinusEl.textContent = `-₹${Math.abs(expense).toFixed(2)}`;
+    
+    balanceEl.classList.toggle('text-red-600', total < 0);
+    balanceEl.classList.toggle('text-gray-800', total >= 0);
+};
+
+const handleAddTransaction = (e) => {
+    e.preventDefault();
+    if (!textInput.value.trim() || !amountInput.value.trim()) {
+        alert('Please provide a description and amount.');
+        return;
+    }
+
+    const type = form.elements.type.value;
+    const amount = parseFloat(amountInput.value);
+
+    const newTransaction = {
+        id: new Date().getTime(),
+        text: textInput.value,
+        amount: type === 'expense' ? -Math.abs(amount) : Math.abs(amount),
+        createdAt: new Date().toISOString(),
+    };
+
+    transactions.push(newTransaction);
+    saveTransactionsToStorage();
+    updateUI();
+    form.reset();
+    document.querySelector('input[name="type"][value="expense"]').checked = true;
+};
+
+const handleDeleteTransaction = (e) => {
+    const deleteButton = e.target.closest('.delete-btn');
+    if (deleteButton) {
+        const id = parseInt(deleteButton.dataset.id);
+        if (confirm('Are you sure you want to delete this transaction?')) {
+            transactions = transactions.filter(t => t.id !== id);
+            saveTransactionsToStorage();
+            updateUI();
         }
-
-        const type = document.querySelector('input[name="type"]:checked').value;
-        const amount = parseFloat(amountInput.value);
-
-        const newTransaction = {
-            text: textInput.value,
-            amount: type === 'income' ? Math.abs(amount) : -Math.abs(amount),
-            createdAt: serverTimestamp(),
-            userId: userId,
-        };
-
-        try {
-            await addDoc(transactionsCollectionRef, newTransaction);
-            textInput.value = '';
-            amountInput.value = '';
-        } catch (error) {
-            console.error("Error adding document: ", error);
-        }
     }
+};
 
-    async function handleDeleteTransaction(e) {
-        if (e.target.classList.contains('delete-btn')) {
-            const id = e.target.getAttribute('data-id');
-            if (!userId || !id) return;
-            
-            try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/transactions`, id));
-            } catch (error) {
-                console.error("Error removing document: ", error);
-            }
-        }
-    }
+form.addEventListener('submit', handleAddTransaction);
+listEl.addEventListener('click', handleDeleteTransaction);
 
-    form.addEventListener('submit', handleAddTransaction);
-    listEl.addEventListener('click', handleDeleteTransaction);
-
-} catch (error) {
-    console.error("Application initialization failed:", error);
-    if (loadingOverlay) {
-        loadingOverlay.innerHTML = `<p class="text-lg text-red-500 text-center p-4">Error: Could not start the application.<br>Please check the console for details.</p>`;
-    }
-}
+updateUI();
