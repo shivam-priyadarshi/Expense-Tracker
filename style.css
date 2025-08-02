@@ -2,18 +2,44 @@ body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(-45deg, #e0f2fe, #bae6fd, #7dd3fc, #38bdf8);
-    background-size: 400% 400%;
-    animation: gradient-animation 15s ease infinite;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed, #a855f7, #ec4899);
+    background-size: 200% 200%;
+    animation: gradient-animation 20s ease infinite;
+}
+
+.main-container {
+    max-width: 1200px;
 }
 
 .delete-btn {
     opacity: 0;
-    transition: opacity 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 li:hover .delete-btn {
     opacity: 1;
+    visibility: visible;
+}
+
+.nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.nav-link.active-link {
+    color: white;
+}
+
+.nav-link.active-link::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #67e8f9; /* cyan-300 */
+    border-radius: 1px;
 }
 
 @keyframes gradient-animation {
