@@ -2,7 +2,7 @@ body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed, #a855f7, #ec4899);
+    background: linear-gradient(135deg, #1e293b, #312e81, #4c1d95);
     background-size: 200% 200%;
     animation: gradient-animation 20s ease infinite;
 }
