@@ -1,3 +1,4 @@
+
 const balanceEl = document.getElementById('balance');
 const moneyPlusEl = document.getElementById('money-plus');
 const moneyMinusEl = document.getElementById('money-minus');
